@@ -22,7 +22,7 @@
 - [Technical design](#technical-design)
 - [Known limitations](#known-limitations)
 - [Risks and mitigations](#risks-and-mitigations)
-- [Roadmap](#roadmap)
+- [Roadmap (near term)](#roadmap-near-term)
 - [Repository structure](#repository-structure)
 - [Prior art and related tools](#prior-art-and-related-tools)
 - [How to contribute](#how-to-contribute)
@@ -311,16 +311,87 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
-## Roadmap
+## Roadmap (near term)
 
-| Phase | Scope | Status |
-|---|---|---|
-| **0. Research** | Feasibility, APIs, limits | ✅ Done (this repo) |
-| **1. MVP** | Toolbox + polling + bootstrapped reload + proxy files + minimal panel | ⬜ Pending |
-| **2. Themes** | Live personas + complete themes with DSS + `refreshSkins` | ⬜ Pending |
-| **3. Chrome/Overlays** | `checkForNewChrome`/`reloadChrome`, assisted window reopening | ⬜ Pending |
-| **4. CLI** | External watcher, `build`, `lint`, endpoint | ⬜ Pending |
-| **5. Polish** | Full panel, diagnostics, packaging, and docs | ⬜ Pending |
+> This is a **living plan, not a fixed schedule**. Only the near term is detailed; everything beyond
+> is intentionally vague and **will change** as we learn. The goal is to move in small, testable
+> steps — build a bit, test it, polish it, then move on. When an assumption proves wrong, update this
+> section (and [`docs/`](docs/)) instead of forcing the original plan.
+
+**How we work**
+
+- Build **vertical slices**: each milestone is usable and demoable end to end.
+- **No big-bang.** One capability at a time.
+- Test on a **real Pale Moon install** before moving on; polish before piling on features.
+- Keep the CLI ↔ toolbox protocol **language-agnostic** so the CLI can be rewritten later.
+- Prefer a **working tool** over a complete one.
+
+**Guiding constraints**
+
+- Toolbox JS targets the **Firefox 52-era** engine (no ES modules, no modern APIs).
+- The toolbox **never reloads itself** — only its reloadable modules.
+- Never touch the user's **daily profile**; always a dedicated dev profile.
+
+### M0 — Setup & proof of concept
+
+*Goal: prove the core assumption before writing any real tooling.*
+
+- [ ] Create a throwaway bootstrapped add-on and load it via a **proxy file** in a dev profile.
+- [ ] Verify that toggling `userDisabled` **re-runs `bootstrap.js` from disk** (log a timestamp).
+- [ ] Confirm the `chrome.manifest` is **re-registered** on reload.
+- [ ] Document the dev-profile setup (location, how to launch it).
+- [ ] Decide toolbox authoring: **plain JS (default)** vs TypeScript — record the decision.
+
+**Exit criteria:** editing `bootstrap.js` and toggling the add-on shows new code without a restart.
+
+### M1 — Toolbox MVP (browser only, polling)
+
+*Goal: a minimal, usable toolbox that reloads one bootstrapped project.*
+
+- [ ] `bootstrap.js` stable core + `core/*` loader with **cache-busting**.
+- [ ] Project config (`pm-ext.json`) parsing.
+- [ ] Polling watcher (`nsITimer` + `nsIFile.lastModifiedTime`), **ignore globs**, **debounce**.
+- [ ] Reloader for bootstrapped extensions (`userDisabled` toggle).
+- [ ] Minimal **XUL panel**: project list, status, Reload button, log output.
+- [ ] Proxy-file management from the panel (register / unregister a project).
+- [ ] Clean shutdown (clear timers/listeners to avoid leaks).
+- [ ] Manual test: edit `bootstrap.js` and a JS file, watch both reload.
+
+**Exit criteria:** a developer can point the toolbox at a real add-on and iterate **without restarting**.
+
+### M2 — Themes & personas
+
+- [ ] Apply / preview personas via `LightweightThemeManager`.
+- [ ] Complete themes: enable **DSS** in the dev profile + `refreshSkins()`.
+- [ ] Panel actions: *Apply Theme*, *Apply Persona*.
+- [ ] Test with a real complete theme and a real persona.
+
+**Exit criteria:** editing a persona updates live; editing a complete theme updates with DSS enabled.
+
+### M3 — Chrome & overlays
+
+- [ ] `checkForNewChrome()` / `reloadChrome()` actions in the panel.
+- [ ] Assisted **window reopening** to re-apply overlays (with a clear warning).
+- [ ] Document exactly what does and does not reload.
+
+### M4 — Optional CLI (Node + TypeScript)
+
+- [ ] Confirm stack; write the **protocol spec** (loopback + token, newline-delimited JSON).
+- [ ] `pm-ext run <dir>` with an external watcher (`chokidar`).
+- [ ] `pm-ext build` (XPI packaging).
+- [ ] `pm-ext lint` (`install.rdf` + structure validation).
+- [ ] Distribution via `npx` / npm.
+
+### Later / not committed yet
+
+*Deliberately vague — revisit only after M1–M2.*
+
+- Richer diagnostics (per-add-on console, error aggregation).
+- Multi-project workflows.
+- Cross-version compatibility matrix.
+- Possible single-binary rewrite (Go) if distribution becomes the blocker.
+
+**Current focus:** M0 → M1.
 
 ---
 
