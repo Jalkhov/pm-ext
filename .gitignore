@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build / artifacts
+dist/
+build/
+*.xpi
+*.zip
+*.map
+
+# Tool output
+pm-ext-artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
