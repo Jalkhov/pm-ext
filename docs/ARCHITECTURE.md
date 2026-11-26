@@ -232,3 +232,42 @@ The toolbox should manage (in its dedicated profile):
 - **Toolbox self-reload:** solved by the core/modules split.
 - **Internal APIs:** `XPIProvider` is not a public API; isolate it.
 - **Overlay extensions:** limited reload; do not promise full hot-reload.
+
+---
+
+## 11. Version compatibility
+
+The minimum supported Pale Moon version is a **measured requirement, not a guess**, and it is part of
+every milestone's definition of done. The toolbox is a *consumer* of UXP internals, so each API we use
+sets a floor for the whole tool.
+
+**Three layers**
+
+1. **Declaration.** `install.rdf` carries `minVersion` for the current minimum, and the panel shows it.
+2. **Startup gate.** Compare `Services.appinfo.platformVersion` against the minimum with
+   `Services.vc.compare`. On an older browser the toolbox still starts — it shows both versions in the
+   panel and disables the features it cannot guarantee. It must never fail silently.
+3. **Capability probe.** Risky APIs (`nsITimer`, `OS.File`, `LightweightThemeManager`,
+   `nsIXULChromeRegistry.reloadChrome`, …) are feature-detected on load. A missing API disables only
+   its feature instead of taking down the toolbox.
+
+**How the minimum is established**
+
+- Every API that enters `core/` gets a row in the table below **in the same commit**.
+- A new API raises `minVersion` in `install.rdf` in that same commit.
+- Verify by running the M0 harness and the panel smoke test on the oldest candidate build. Log
+  `appinfo.version` / `platformVersion` next to the driver's existing `build` and `reason` lines.
+- Bisect only when a regression needs a precise boundary; otherwise the table is the source of truth.
+
+| API / behaviour | Pale Moon | Used by | Notes |
+|---|---|---|---|
+| Bootstrap lifecycle, `userDisabled` toggle | ≤ 35.0.2 ✅ | M0 | verified on 35.0.2 |
+| Proxy file in `<profile>/extensions/<id>` | ≤ 35.0.2 ✅ | M0 | verified |
+| `chrome.manifest` re-registration on reload | ≤ 35.0.2 ✅ | M0 | verified |
+| `AddonManager.getAddonByID` | 35.0.2 ✅ | M0 | callback-only, no promise API |
+| `OS.File` read / `writeAtomic` with `encoding` | 35.0.2 ✅ | M0 | no `TextEncoder` in the sandbox |
+| `nsITimer`, `nsIFile.lastModifiedTime` | unknown | M1 | measure |
+| `LightweightThemeManager` | unknown | M2 | measure |
+| `nsIXULChromeRegistry.reloadChrome` / `checkForNewChrome` | unknown | M3 | measure |
+
+✅ = verified on that version. **Rule:** no API is used in `core/` without a row here.

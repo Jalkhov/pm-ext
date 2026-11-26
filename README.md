@@ -308,6 +308,7 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | Open local socket (CLI mode) | Security | Loopback only + token + minimal protocol |
 | Costly polling | CPU/battery | Configurable interval, ignores, external watcher |
 | Damaging the daily profile | Data loss | Dedicated/temporary dev profile; never touch the main one |
+| Unknown minimum Pale Moon version | Obscure breakage on older builds | Per-API version table, `minVersion` in `install.rdf`, startup gate + capability probe |
 
 ---
 
@@ -331,6 +332,9 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Toolbox JS targets the **Firefox 52-era** engine (no ES modules, no modern APIs).
 - The toolbox **never reloads itself** — only its reloadable modules.
 - Never touch the user's **daily profile**; always a dedicated dev profile.
+- The **minimum supported Pale Moon version** is tracked per API, declared in `install.rdf` and
+  verified at startup. It is measured, never guessed — see
+  [`docs/ARCHITECTURE.md §11`](docs/ARCHITECTURE.md#11-version-compatibility).
 
 ### M0 — Setup & proof of concept
 
@@ -353,6 +357,7 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 - [ ] `bootstrap.js` stable core + `core/*` loader with **cache-busting**.
 - [ ] Project config (`pm-ext.json`) parsing.
+- [ ] Declare the minimum Pale Moon version, check it at startup and degrade with a clear message on older builds (see [`docs/ARCHITECTURE.md §11`](docs/ARCHITECTURE.md#11-version-compatibility)).
 - [ ] Polling watcher (`nsITimer` + `nsIFile.lastModifiedTime`), **ignore globs**, **debounce**.
 - [ ] Reloader for bootstrapped extensions (`userDisabled` toggle).
 - [ ] Minimal **XUL panel**: project list, status, Reload button, log output.
