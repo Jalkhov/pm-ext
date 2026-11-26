@@ -421,7 +421,8 @@ pm-ext/
 │  └─ RESEARCH.md         ← research and evidence
 ├─ extension/             ← bootstrap toolbox add-on (M1 slice 1)
 ├─ tests/
-│  └─ unit/               ← Node unit tests (no Pale Moon needed)
+│  ├─ unit/               ← Node unit tests (no Pale Moon needed)
+│  └─ integration/        ← end-to-end check driven inside Pale Moon
 ├─ cli/                   ← (placeholder) Node CLI
 └─ examples/              ← sample projects
    └─ m0/                 ← M0 proof-of-concept harness (validated)
@@ -435,8 +436,17 @@ node --test
 
 The unit tests load `extension/core/watcher.js` into a Node `vm` with fake
 `nsIFile`/`nsITimer`, so they cover the poll, diff and debounce logic without
-launching the browser. Platform behaviour (reload cycle, chrome registration,
-panel) is verified manually per [`extension/README.md`](extension/README.md).
+launching the browser.
+
+```
+tests/integration/run.sh
+```
+
+The integration check installs the toolbox and a fixture add-on in a throwaway
+profile, drives the panel, unregisters the fixture and waits for a watched reload.
+It needs Pale Moon and exits non-zero unless the log ends in `RESULT: PASS`. The
+folder picker (`Register project...`) still needs one manual click: see
+[`extension/README.md`](extension/README.md).
 
 ---
 
