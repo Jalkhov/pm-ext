@@ -15,9 +15,11 @@ The privileged add-on that pm-ext is built around.
   manifest html dtd properties json`; `.git` and `node_modules` are skipped. After a 400 ms quiet
   period the add-on is toggled with `userDisabled`, which re-runs its `bootstrap.js` from disk.
 - Log at `<profile>/pmext.log`.
+- Project list in the panel with its state (`watching` or `restart to load`), plus **Register
+  project...** and **Unregister** (they create and remove the proxy file; loading and unloading
+  still happen at the next start).
 
-**Not there yet:** `pm-ext.json` contents (only its presence is used), project list in the panel,
-proxy-file management, toolbar entry.
+**Not there yet:** `pm-ext.json` contents (only its presence is used), toolbar entry.
 
 ## Run it
 
@@ -49,3 +51,14 @@ printf '%s' "$PWD/my-addon" > "$PROFILE/extensions/my-addon@example.com"
 
 Edit any watched file and the add-on restarts without touching the browser. The panel status shows
 how many projects are watched; `pmext.log` records each reload. The toolbox never watches itself.
+
+## Manage projects
+
+**Register project...** opens a folder picker; choose a directory that contains `install.rdf` and
+`pm-ext.json`. The toolbox writes `<profile>/extensions/<id>` with that path and adds the project to
+the list as `restart to load`. Restart Pale Moon once to load it; from then on it is watched.
+
+**Unregister** removes the proxy file of the selected project and drops it from the list. The add-on
+keeps running until the next restart.
+
+Both actions only edit proxy files: UXP cannot load or unload a bootstrapped add-on on demand.

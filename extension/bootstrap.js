@@ -67,7 +67,7 @@ function openPanel() {
     null,
     PANEL_URL,
     "pmext-panel",
-    "chrome,dialog=no,resizable,centering,width=620,height=420",
+    "chrome,dialog=no,resizable,centering,width=620,height=520",
     null
   );
   if (core && typeof core.onPanelOpened === "function") {

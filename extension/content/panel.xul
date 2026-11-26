@@ -4,7 +4,7 @@
 <window id="pmext-panel"
         title="pm-ext"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="620" height="420"
+        width="620" height="520"
         persist="screenX screenY width height">
 
   <vbox flex="1" style="padding: 10px;">
@@ -19,6 +19,13 @@
 
     <hbox style="margin: 8px 0;">
       <button id="pmext-reload" label="Reload core"/>
+    </hbox>
+
+    <label value="Projects"/>
+    <listbox id="pmext-projects" height="110"/>
+    <hbox style="margin: 6px 0;">
+      <button id="pmext-register" label="Register project..."/>
+      <button id="pmext-unregister" label="Unregister"/>
     </hbox>
 
     <label value="Log"/>

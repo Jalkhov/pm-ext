@@ -2,8 +2,8 @@
 
 > A **live-reload development tool** for **Pale Moon** (UXP platform) add-ons: extensions, themes, and personas.
 
-**Status:** 🚧 M1 in progress — M0 validated; the toolbox boots, reloads its core, opens a panel and
-auto-reloads proxy projects marked with `pm-ext.json`.
+**Status:** 🚧 M1 in progress — M0 validated; the toolbox boots, reloads its core, opens a panel,
+registers projects and auto-reloads those marked with `pm-ext.json`.
 **Goal:** a functional equivalent to [`web-ext`](https://github.com/mozilla/web-ext) for the XUL/XPCOM ecosystem of Pale Moon.
 **License:** MPL-2.0.
 
@@ -362,8 +362,9 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - [x] Polling watcher (`nsITimer` + `nsIFile.lastModifiedTime`) with **debounce** and **ignore rules**
       (watched extensions only; `.git` and `node_modules` skipped).
 - [x] Reloader for bootstrapped extensions (`userDisabled` toggle, re-enabled after shutdown).
-- [ ] Minimal **XUL panel**: project list, status, Reload button, log output.
-- [ ] Proxy-file management from the panel (register / unregister a project).
+- [x] Minimal **XUL panel**: project list, status, Reload button, log output.
+- [x] Proxy-file management from the panel (register / unregister a project).
+- [ ] Manual test: register a project through the folder picker.
 - [x] Clean shutdown (timers cancelled, watchers stopped, no listeners left behind).
 - [x] Unit tests for the watcher (poll, diff, debounce, ignore rules) that run in Node.
 - [ ] Manual test: edit `bootstrap.js` and a JS file, watch both reload.
