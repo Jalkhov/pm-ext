@@ -88,6 +88,12 @@ function waitForLog(text) {
   return waitFor("log: " + text, function () { return toolboxLogHas(text); });
 }
 
+function countReloads() {
+  return readText(PROFILE + "/pmext.log").then(function (log) {
+    return log.split("change(s) in " + TARGET_ID + " -> reload").length - 1;
+  });
+}
+
 function proxyTarget(id) {
   return readText(PROFILE + "/extensions/" + id).then(function (path) {
     return path.trim();
@@ -103,10 +109,10 @@ function run() {
     .then(function (addon) {
       if (!addon.isActive) throw new Error("toolbox is not active");
       log("toolbox loaded");
-      return waitForLog("core started build=v3");
+      return waitForLog("core started build=v4");
     })
     .then(function () {
-      log("core v3 loaded");
+      log("core v4 loaded");
       return waitFor("panel", panelWindow);
     })
     .then(function () {
@@ -169,6 +175,35 @@ function run() {
     })
     .then(function () {
       log("target reloaded");
+      // Let the watcher settle, then save two files at once.
+      return sleep(1200);
+    })
+    .then(countReloads)
+    .then(function (before) {
+      return proxyTarget(TARGET_ID).then(function (directory) {
+        const stamp = Date.now();
+        return readText(directory + "/bootstrap.js").then(function (source) {
+          return OS.File.writeAtomic(directory + "/bootstrap.js",
+            source + "\n// two files " + stamp + "\n", { encoding: "utf-8" });
+        }).then(function () {
+          return readText(directory + "/chrome.manifest");
+        }).then(function (manifest) {
+          return OS.File.writeAtomic(directory + "/chrome.manifest",
+            manifest + "\n# two files " + stamp + "\n", { encoding: "utf-8" });
+        }).then(function () {
+          return waitForLog("2 change(s) in " + TARGET_ID + " -> reload");
+        }).then(function () {
+          // Both files belong to one save, so only one reload may follow.
+          return sleep(2500).then(countReloads).then(function (after) {
+            if (after !== before + 1) {
+              throw new Error("expected one reload for two files, saw " + (after - before));
+            }
+          });
+        });
+      });
+    })
+    .then(function () {
+      log("two files saved at once -> one reload");
       log("RESULT: PASS");
     })
     .catch(function (error) {

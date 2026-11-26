@@ -28,7 +28,14 @@ printf '%s' "$ROOT/tests/integration/driver" > "$PROFILE/extensions/pm-ext-integ
 printf '%s' "$WORK/target" > "$PROFILE/extensions/pm-ext-m0-target@example.com"
 printf '%s' "$ROOT/tests/integration/fixtures/second" > "$PROFILE/extensions/pm-ext-second@example.com"
 
-timeout 120 "$BIN" -no-remote -profile "$PROFILE" about:blank || true
+"$BIN" -no-remote -profile "$PROFILE" about:blank &
+BROWSER=$!
+# Kill it if the driver hangs, and never leave an instance holding the profile.
+( sleep 120; kill "$BROWSER" 2>/dev/null ) &
+WATCHDOG=$!
+trap 'kill "$BROWSER" "$WATCHDOG" 2>/dev/null || true' EXIT
+wait "$BROWSER" || true
+kill "$WATCHDOG" 2>/dev/null || true
 
 cat "$PROFILE/integration.log"
 grep -q "RESULT: PASS" "$PROFILE/integration.log"
