@@ -29,3 +29,6 @@ yarn-error.log*
 # Environment
 .env
 .env.local
+
+# Local Pale Moon dev profile (examples/m0)
+.dev-profile/
