@@ -3,7 +3,8 @@
 This document describes the proposed technical design for `pm-ext`: a live-reload development
 system for **Pale Moon** (platform **UXP**) add-ons.
 
-> Status: **M0 validated, M1 in progress**. The loader and the panel exist; the watcher does not.
+> Status: **M0 validated, M1 in progress**. The loader, the panel and the watcher exist; project and
+> proxy management do not.
 
 ---
 
@@ -266,7 +267,7 @@ sets a floor for the whole tool.
 | `chrome.manifest` re-registration on reload | ≤ 35.0.2 ✅ | M0 | verified |
 | `AddonManager.getAddonByID` | 35.0.2 ✅ | M0 | callback-only, no promise API |
 | `OS.File` read / `writeAtomic` with `encoding` | 35.0.2 ✅ | M0 | no `TextEncoder` in the sandbox |
-| `nsITimer`, `nsIFile.lastModifiedTime` | unknown | M1 | measure |
+| `nsITimer`, `nsIFile.lastModifiedTime`, recursive `directoryEntries` | 35.0.2 ✅ | M1 | polling watcher verified |
 | `LightweightThemeManager` | unknown | M2 | measure |
 | `nsIXULChromeRegistry.reloadChrome` / `checkForNewChrome` | unknown | M3 | measure |
 

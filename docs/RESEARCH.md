@@ -194,3 +194,20 @@ Measured on Pale Moon 35.0.2 / UXP 6.9.0 with the harness in [`examples/m0/`](..
   `AddonManager.getAddonByID(id, callback)`.
 - **No `TextEncoder` / `TextDecoder` in the bootstrap sandbox.** `OS.File` is available;
   read/write strings with `OS.File.read/writeAtomic(path, data, { encoding: "utf-8" })`.
+
+---
+
+## 12. Runtime findings (M1 watcher)
+
+Also measured on Pale Moon 35.0.2 / UXP 6.9.0:
+
+- **Polling works in a reloadable module.** A `TYPE_REPEATING_SLACK` timer and a recursive
+  `nsIFile.directoryEntries` walk run correctly from a `loadSubScript` scope; the scan of a small
+  project costs well under the 800 ms tick.
+- **`directoryEntries` entries need a path-backed `nsIFile`.** The walk only works on an
+  `nsIFile`; a plain path string has no `directoryEntries`.
+- **Re-enabling needs a delay.** `userDisabled = true` makes `addon.isActive` false immediately,
+  before the old scope is unloaded. Enabling right away re-ran the bootstrap, but waiting ~1 s
+  avoids depending on that race: disable → wait ≥ 1 s → poll for inactive → enable.
+- **Fresh-profile order:** add-ons start with reason `ADDON_INSTALL` (5) and the toolbox discovers
+  project proxy files before any edit, so the watcher's first scan is a clean baseline.
