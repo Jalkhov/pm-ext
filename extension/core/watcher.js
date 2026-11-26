@@ -21,6 +21,61 @@ var PM_EXT_WATCHER = (function () {
   let snapshot = null;
   let pending = [];
   let pendingSince = 0;
+  let ignoreRules = [];
+
+  function escapeRegex(character) {
+    return character.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // Rooted globs match the path; bare globs match the file name at any depth.
+  function globSource(pattern) {
+    let source = "";
+    for (let index = 0; index < pattern.length; index++) {
+      const character = pattern.charAt(index);
+      if (character === "*") {
+        if (pattern.charAt(index + 1) === "*") {
+          source += ".*";
+          index++;
+        } else {
+          source += "[^/]*";
+        }
+      } else if (character === "?") {
+        source += "[^/]";
+      } else {
+        source += escapeRegex(character);
+      }
+    }
+    return source;
+  }
+
+  function compileRule(value) {
+    if (typeof value !== "string") return null;
+    const pattern = value.trim();
+    if (!pattern) return null;
+    if (pattern.slice(-3) === "/**") return { prefix: pattern.slice(0, -3) };
+    if (pattern.charAt(pattern.length - 1) === "/") {
+      return { prefix: pattern.slice(0, -1) };
+    }
+    return {
+      regex: new RegExp("^" + globSource(pattern) + "$"),
+      rooted: pattern.indexOf("/") !== -1
+    };
+  }
+
+  function matchesRule(rule, relative) {
+    if (rule.prefix) {
+      return relative === rule.prefix || relative.indexOf(rule.prefix + "/") === 0;
+    }
+    const subject = rule.rooted ? relative : relative.slice(relative.lastIndexOf("/") + 1);
+    return rule.regex.test(subject);
+  }
+
+  function isIgnored(relative) {
+    for (let index = 0; index < ignoreRules.length; index++) {
+      if (matchesRule(ignoreRules[index], relative)) return true;
+    }
+    return false;
+  }
 
   function isWatched(file) {
     const name = file.leafName;
@@ -29,13 +84,16 @@ var PM_EXT_WATCHER = (function () {
     return WATCHED_EXTENSIONS[name.slice(dot + 1).toLowerCase()] === true;
   }
 
-  function scan(current, found) {
+  function scan(current, found, prefix) {
     const entries = current.directoryEntries;
     while (entries.hasMoreElements()) {
       const entry = entries.getNext().QueryInterface(Ci.nsIFile);
+      const relative = prefix ? prefix + "/" + entry.leafName : entry.leafName;
       if (entry.isDirectory()) {
-        if (!IGNORED_DIRS[entry.leafName]) scan(entry, found);
-      } else if (isWatched(entry)) {
+        if (!IGNORED_DIRS[entry.leafName] && !isIgnored(relative)) {
+          scan(entry, found, relative);
+        }
+      } else if (!isIgnored(relative) && isWatched(entry)) {
         found[entry.path] = entry.lastModifiedTime;
       }
     }
@@ -55,7 +113,7 @@ var PM_EXT_WATCHER = (function () {
   function tick() {
     const next = {};
     try {
-      scan(dir, next);
+      scan(dir, next, "");
     } catch (error) {
       // stop() clears the callbacks, so report before tearing down.
       const report = onError;
@@ -83,17 +141,25 @@ var PM_EXT_WATCHER = (function () {
     }
   }
 
-  function start(directory, changeCallback, errorCallback) {
+  function start(directory, changeCallback, errorCallback, options) {
     stop();
     dir = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
     dir.initWithPath(directory);
     onChange = changeCallback;
     onError = errorCallback || function () {};
+    const ignored = options && options.ignore;
+    if (Array.isArray(ignored)) {
+      for (let index = 0; index < ignored.length; index++) {
+        const rule = compileRule(ignored[index]);
+        if (rule) ignoreRules.push(rule);
+      }
+    }
     snapshot = null;
     pending = [];
     pendingSince = 0;
     timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     timer.initWithCallback(tick, POLL_MS, Ci.nsITimer.TYPE_REPEATING_SLACK);
+    return { stop: stop };
   }
 
   function stop() {
@@ -107,6 +173,7 @@ var PM_EXT_WATCHER = (function () {
     snapshot = null;
     pending = [];
     pendingSince = 0;
+    ignoreRules = [];
   }
 
   return { start: start, stop: stop };

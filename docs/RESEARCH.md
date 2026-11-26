@@ -233,3 +233,17 @@ Measured on Pale Moon 35.0.2 / UXP 6.9.0 with [`fixtures/`](../fixtures/README.m
   (0x80070057) for a local theme, and assigning `null` afterwards left the main loop unable to run
   timers in our probe. `setLocalTheme(data)` applied a persona with `file://` images and
   `currentTheme.id` read back correctly.
+
+## 14. Runtime findings (M1 project config)
+
+- **One watcher module instance per project.** `loadSubScript` of `core/watcher.js` keeps its state
+  in the module scope, so a second `start()` would replace the first project's timer and directory.
+  `core/main.js` loads the file once per project instead, and `start()` returns `{stop}` so
+  refresh and shutdown can cancel each timer.
+- **A 2500 ms one-shot timer created in a bootstrap sandbox stopped firing** about 20 s into the
+  integration run, while 200 ms polling timers kept working. Two short waits replaced it. The
+  toolbox itself only uses timers up to 1 s; if a longer delay is ever needed, build it from short
+  ones.
+- **Leftover browser processes share the profile.** Killing the test runner without its child left
+  two Pale Moon instances watching the same folder, which showed up as duplicate reloads. The
+  runner now backgrounds the browser, owns its pid and kills it on exit.

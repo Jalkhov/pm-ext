@@ -4,7 +4,7 @@ This document describes the proposed technical design for `pm-ext`: a live-reloa
 system for **Pale Moon** (platform **UXP**) add-ons.
 
 > Status: **M0 validated, M1 in progress**. The loader, the panel, the watcher and proxy management
-> exist; `pm-ext.json` is not parsed yet.
+> exist; `pm-ext.json` is parsed for `ignore` globs.
 
 ---
 
@@ -200,6 +200,9 @@ A minimal, secure proposal:
   }
 }
 ```
+
+Parsed today: `ignore`; the add-on id comes from `install.rdf` and the watch list is fixed. A
+malformed project file is logged and treated as empty, so a typo never stops the watcher.
 
 - Registration via **proxy file**: a file `<id>` in `…/extensions/` containing the path to the
   working folder.

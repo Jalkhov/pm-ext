@@ -2,7 +2,7 @@
 // scope. It must not assume any previous state survived.
 "use strict";
 
-var PM_EXT_BUILD = "v3";
+var PM_EXT_BUILD = "v4";
 
 var PM_EXT_CORE = (function () {
   const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
@@ -21,7 +21,6 @@ var PM_EXT_CORE = (function () {
   let host = null;
   let alive = false;
   let refreshTimer = null;
-  let watcherModule = null;
   let projects = [];
   let projectsSignature = "";
   let reloadTimers = {};
@@ -129,6 +128,19 @@ var PM_EXT_CORE = (function () {
     });
   }
 
+  // A broken project file must not stop the watch: log it and use the defaults.
+  function readConfig(directory, id) {
+    const marker = localFile(directory);
+    marker.append(PROJECT_FILE);
+    return OS.File.read(marker.path, { encoding: "utf-8" }).then(function (text) {
+      if (!text.trim()) return {};
+      return JSON.parse(text) || {};
+    }).catch(function (error) {
+      host.log("watch: " + id + ": invalid " + PROJECT_FILE + " (" + error + "); using defaults");
+      return {};
+    });
+  }
+
   function readProjects() {
     const dir = extensionsDir();
     if (!dir.exists() || !dir.isDirectory()) return Promise.resolve([]);
@@ -149,8 +161,17 @@ var PM_EXT_CORE = (function () {
         const marker = localFile(path);
         marker.append(PROJECT_FILE);
         if (!marker.exists()) return null;
-        return addonState(entry.leafName).then(function (active) {
-          return { id: entry.leafName, dir: path, active: active, watcher: null };
+        return Promise.all([
+          addonState(entry.leafName),
+          readConfig(path, entry.leafName)
+        ]).then(function (values) {
+          return {
+            id: entry.leafName,
+            dir: path,
+            active: values[0],
+            ignore: values[1].ignore,
+            watcher: null
+          };
         });
       }, function () {
         return null;
@@ -242,15 +263,20 @@ var PM_EXT_CORE = (function () {
     });
   }
 
+  // Each project gets its own watcher instance, so one timer never replaces
+  // another project's scan.
   function startWatcher(project) {
-    project.watcher = watcherModule.start(
+    const module = loadWatcher();
+    if (!module) return;
+    project.watcher = module.start(
       project.dir,
       function (files) {
         reloadProject(project, files);
       },
       function (message) {
         host.log("watch: " + project.id + ": " + message);
-      }
+      },
+      { ignore: project.ignore }
     );
   }
 
@@ -312,8 +338,7 @@ var PM_EXT_CORE = (function () {
   }
 
   function startWatching() {
-    watcherModule = loadWatcher();
-    if (!watcherModule) {
+    if (!loadWatcher()) {
       host.log("watch: core/watcher.js not found; nothing is watched");
       return;
     }
@@ -346,7 +371,6 @@ var PM_EXT_CORE = (function () {
     stopWatchers();
     for (const id in reloadTimers) reloadTimers[id].cancel();
     reloadTimers = {};
-    watcherModule = null;
     host = null;
   }
 

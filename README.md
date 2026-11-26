@@ -3,7 +3,7 @@
 > A **live-reload development tool** for **Pale Moon** (UXP platform) add-ons: extensions, themes, and personas.
 
 **Status:** 🚧 M1 in progress — M0 validated; the toolbox boots, reloads its core, opens a panel,
-registers projects and auto-reloads those marked with `pm-ext.json`.
+registers projects, auto-reloads those marked with `pm-ext.json` and honours the `ignore` globs in it.
 **Goal:** a functional equivalent to [`web-ext`](https://github.com/mozilla/web-ext) for the XUL/XPCOM ecosystem of Pale Moon.
 **License:** MPL-2.0.
 
@@ -195,15 +195,13 @@ A project file (e.g. `pm-ext.json`) at the add-on root describes what it is and 
 
 ```json
 {
-  "id": "my-addon@example.com",
-  "type": "bootstrap",
-  "entry": "bootstrap.js",
-  "ignore": ["**/*.xpi", "node_modules/**", ".git/**"],
-  "reload": {
-    "on": ["bootstrap.js", "**/*.js", "chrome.manifest", "**/*.xul", "**/*.css"]
-  }
+  "ignore": ["*.xpi", "node_modules/**", "dist/"]
 }
 ```
+
+Parsed today: `ignore`. A bare glob matches file names at any depth (`*.xpi`), `dir/` and
+`dir/**` skip a subtree, and a glob with a slash is matched against the project-relative path.
+The add-on id is read from `install.rdf`; `type`, `entry` and `reload` are still design.
 
 ---
 
@@ -357,7 +355,7 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 *Goal: a minimal, usable toolbox that reloads one bootstrapped project.*
 
 - [x] `bootstrap.js` stable core + `core/*` loader with **cache-busting**.
-- [ ] Project config (`pm-ext.json`) parsing.
+- [x] Project config (`pm-ext.json`) parsing: `ignore` globs (`id` comes from `install.rdf`).
 - [x] Declare the minimum Pale Moon version, check it at startup and degrade with a clear message on older builds (see [`docs/ARCHITECTURE.md §11`](docs/ARCHITECTURE.md#11-version-compatibility)).
 - [x] Polling watcher (`nsITimer` + `nsIFile.lastModifiedTime`) with **debounce** and **ignore rules**
       (watched extensions only; `.git` and `node_modules` skipped).

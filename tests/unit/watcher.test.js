@@ -206,6 +206,29 @@ test("ignores .git, node_modules and unwatched file types", function () {
   assert.deepEqual(plain(changes), []);
 });
 
+test("ignore rules skip matching files and whole directories", function () {
+  const harness = createHarness({
+    "main.js": 100,
+    "main.min.js": 100,
+    "build/generated.js": 100,
+    "src/app.js": 100
+  });
+  const changes = [];
+  harness.watcher.start(ROOT, function (files) { changes.push(files); }, function () {}, {
+    ignore: ["*.min.js", "build/"]
+  });
+  harness.poll();
+
+  harness.fixture.nodes.get(ROOT + "/main.min.js").lastModifiedTime = 200;
+  harness.fixture.nodes.get(ROOT + "/build/generated.js").lastModifiedTime = 200;
+  harness.fixture.nodes.get(ROOT + "/src/app.js").lastModifiedTime = 200;
+  harness.poll();
+  harness.clock.now += 500;
+  harness.poll();
+
+  assert.deepEqual(plain(changes), [[ROOT + "/src/app.js"]]);
+});
+
 test("watches chrome.manifest, nested files and uppercase extensions", function () {
   const harness = createHarness(quietProject());
   const changes = [];

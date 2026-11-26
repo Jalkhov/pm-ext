@@ -12,14 +12,15 @@ The privileged add-on that pm-ext is built around.
   `install.rdf`); below it the panel warns, reload is disabled and nothing is watched.
 - Polling watcher (`core/watcher.js`, 800 ms): every add-on installed through a proxy file whose
   source root contains `pm-ext.json` is watched. Watched extensions are `js xul xml rdf css
-  manifest html dtd properties json`; `.git` and `node_modules` are skipped. After a 400 ms quiet
-  period the add-on is toggled with `userDisabled`, which re-runs its `bootstrap.js` from disk.
+  manifest html dtd properties json`; `.git` and `node_modules` are skipped, plus whatever the
+  project file lists in `ignore`. After a 400 ms quiet period the add-on is toggled with
+  `userDisabled`, which re-runs its `bootstrap.js` from disk.
 - Log at `<profile>/pmext.log`.
 - Project list in the panel with its state (`watching` or `restart to load`), plus **Register
   project...** and **Unregister** (they create and remove the proxy file; loading and unloading
   still happen at the next start).
 
-**Not there yet:** `pm-ext.json` contents (only its presence is used), toolbar entry.
+**Not there yet:** `pm-ext.json` keys other than `ignore`, toolbar entry.
 
 ## Run it
 
@@ -41,13 +42,16 @@ To hot-reload the toolbox itself: edit `core/main.js`, then press **Reload core*
 
 ## Watch a project
 
-Install the add-on you are developing through its own proxy file and drop an empty `pm-ext.json` at
-its root:
+Install the add-on you are developing through its own proxy file and put a `pm-ext.json` at its
+root:
 
 ```sh
 printf '%s' "$PWD/my-addon" > "$PROFILE/extensions/my-addon@example.com"
-: > "$PWD/my-addon/pm-ext.json"
+printf '%s\n' '{"ignore": ["*.xpi", "dist/"]}' > "$PWD/my-addon/pm-ext.json"
 ```
+
+`ignore` takes globs: a bare glob matches file names at any depth (`*.xpi`), a path with a slash is
+matched from the project root, and `dir/` or `dir/**` skips a subtree. An empty object is valid.
 
 Edit any watched file and the add-on restarts without touching the browser. The panel status shows
 how many projects are watched; `pmext.log` records each reload. The toolbox never watches itself.
