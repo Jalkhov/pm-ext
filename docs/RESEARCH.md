@@ -176,3 +176,21 @@ No `web-ext`-equivalent tool for XUL/Pale Moon was found.
 - Pale Moon: `palemoon/app/profile/palemoon.js` (prefs).
 - Docs: <https://developer.palemoon.org/addons>, <https://www.palemoon.org/roadmap.shtml>.
 - `web-ext`: <https://github.com/mozilla/web-ext>.
+
+---
+
+## 11. Runtime findings (M0 proof of concept)
+
+Measured on Pale Moon 35.0.2 / UXP 6.9.0 with the harness in [`examples/m0/`](../examples/m0/README.md):
+
+- **Hot reload confirmed:** `userDisabled = true` → `shutdown(ADDON_DISABLE)`, then
+  `userDisabled = false` → `startup(ADDON_ENABLE)` re-runs `bootstrap.js` **from disk**
+  (a rewritten constant ran without restarting the browser).
+- **Proxy file confirmed:** a text file in `<profile>/extensions/<id>` containing the
+  absolute source path loads the add-on directly from the working directory.
+- **`chrome.manifest` re-registered:** `chrome://<package>/...` resolves after the reload.
+- **`AddonManager.getAddonByID` is callback-only.** It does **not** return a promise;
+  calling it without a callback throws `aCallback must be a function`. Use
+  `AddonManager.getAddonByID(id, callback)`.
+- **No `TextEncoder` / `TextDecoder` in the bootstrap sandbox.** `OS.File` is available;
+  read/write strings with `OS.File.read/writeAtomic(path, data, { encoding: "utf-8" })`.

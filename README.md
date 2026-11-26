@@ -2,7 +2,7 @@
 
 > A **live-reload development tool** for **Pale Moon** (UXP platform) add-ons: extensions, themes, and personas.
 
-**Status:** 📝 Idea / initial research — no code yet.
+**Status:** 🚧 M0 validated — core reload assumption proven on Pale Moon 35.0.2; toolbox not started.
 **Goal:** a functional equivalent to [`web-ext`](https://github.com/mozilla/web-ext) for the XUL/XPCOM ecosystem of Pale Moon.
 **License:** MPL-2.0.
 
@@ -336,13 +336,16 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 *Goal: prove the core assumption before writing any real tooling.*
 
-- [ ] Create a throwaway bootstrapped add-on and load it via a **proxy file** in a dev profile.
-- [ ] Verify that toggling `userDisabled` **re-runs `bootstrap.js` from disk** (log a timestamp).
-- [ ] Confirm the `chrome.manifest` is **re-registered** on reload.
-- [ ] Document the dev-profile setup (location, how to launch it).
-- [ ] Decide toolbox authoring: **plain JS (default)** vs TypeScript — record the decision.
+- [x] Create a throwaway bootstrapped add-on and load it via a **proxy file** in a dev profile.
+- [x] Verify that toggling `userDisabled` **re-runs `bootstrap.js` from disk** (log a timestamp).
+- [x] Confirm the `chrome.manifest` is **re-registered** on reload.
+- [x] Document the dev-profile setup (location, how to launch it).
+- [x] Decide toolbox authoring: **plain JS (default)** vs TypeScript — record the decision.
 
 **Exit criteria:** editing `bootstrap.js` and toggling the add-on shows new code without a restart.
+
+> ✅ Validated on Pale Moon 35.0.2: see [`examples/m0/`](examples/m0/README.md) for the
+> harness, the run log and the runtime findings.
 
 ### M1 — Toolbox MVP (browser only, polling)
 
@@ -391,7 +394,7 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Cross-version compatibility matrix.
 - Possible single-binary rewrite (Go) if distribution becomes the blocker.
 
-**Current focus:** M0 → M1.
+**Current focus:** M1.
 
 ---
 
@@ -409,7 +412,8 @@ pm-ext/
 │  └─ RESEARCH.md         ← research and evidence
 ├─ extension/             ← (placeholder) bootstrap toolbox add-on
 ├─ cli/                   ← (placeholder) Node CLI
-└─ examples/              ← (placeholder) sample projects
+└─ examples/              ← sample projects
+   └─ m0/                 ← M0 proof-of-concept harness (validated)
 ```
 
 ---
