@@ -211,3 +211,25 @@ Also measured on Pale Moon 35.0.2 / UXP 6.9.0:
   avoids depending on that race: disable → wait ≥ 1 s → poll for inactive → enable.
 - **Fresh-profile order:** add-ons start with reason `ADDON_INSTALL` (5) and the toolbox discovers
   project proxy files before any edit, so the watcher's first scan is a clean baseline.
+
+---
+
+## 13. Runtime findings (M2 fixtures)
+
+Measured on Pale Moon 35.0.2 / UXP 6.9.0 with [`fixtures/`](../fixtures/README.md):
+
+- **Themes need `<em:internalName>`.** Without it the add-on is rejected with
+  `Themes must include an internalName property` and the proxy file is removed. The value must
+  match the skin name in `chrome.manifest` (`skin browser pm-ext-theme/1.0 ...`).
+- **A theme manifest only registers `skin` packages.** `content` packages do not resolve
+  (`chrome://<theme>/content/...` → `NS_ERROR_FILE_NOT_FOUND`) and `override` lines are ignored.
+  Restyling a single file therefore means declaring a `skin browser` package; missing files do not
+  fall back per file, so a tiny theme leaves the rest of the chrome unstyled.
+- **DSS applies a theme live.** With `extensions.dss.enabled = true`, setting
+  `addon.userDisabled = false` leaves `isActive = true` and `extensions.dss.switchPending = false`;
+  `refreshSkins()` then serves the new skin (`chrome://browser/skin/...` resolves to the fixture).
+- **Local personas use `setLocalTheme(data)`.** Assigning
+  `LightweightThemeManager.currentTheme = data` throws `NS_ERROR_ILLEGAL_VALUE`
+  (0x80070057) for a local theme, and assigning `null` afterwards left the main loop unable to run
+  timers in our probe. `setLocalTheme(data)` applied a persona with `file://` images and
+  `currentTheme.id` read back correctly.

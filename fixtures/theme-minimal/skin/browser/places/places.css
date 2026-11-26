@@ -1,0 +1,4 @@
+/* pm-ext fixture: if this rule shows up in the Library window, the theme is active. */
+#placesToolbar {
+  border-bottom: 2px solid #4a6572;
+}

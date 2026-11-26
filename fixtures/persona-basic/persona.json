@@ -1,0 +1,13 @@
+{
+  "id": "pm-ext-persona-basic@example.com",
+  "name": "pm-ext persona basic",
+  "description": "Minimal persona for pm-ext: solid header and footer, defaults for everything else.",
+  "author": "pm-ext",
+  "version": "0.1.0",
+  "headerURL": "header.png",
+  "footerURL": "footer.png",
+  "iconURL": "icon.png",
+  "previewURL": "preview.png",
+  "textcolor": "#e8e8e8",
+  "accentcolor": "#2d3e50"
+}

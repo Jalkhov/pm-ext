@@ -420,6 +420,7 @@ pm-ext/
 │  ├─ ARCHITECTURE.md     ← technical design and mechanisms
 │  └─ RESEARCH.md         ← research and evidence
 ├─ extension/             ← bootstrap toolbox add-on (M1 slice 1)
+├─ fixtures/              ← persona and theme fixtures for M2
 ├─ tests/
 │  ├─ unit/               ← Node unit tests (no Pale Moon needed)
 │  └─ integration/        ← end-to-end check driven inside Pale Moon
