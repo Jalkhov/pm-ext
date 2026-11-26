@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="pmext-panel"
+        title="pm-ext"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        width="620" height="420"
+        persist="screenX screenY width height">
+
+  <vbox flex="1" style="padding: 10px;">
+
+    <hbox align="center">
+      <label id="pmext-title" value="pm-ext toolbox" style="font-weight: bold; font-size: 14px;"/>
+      <spacer flex="1"/>
+      <label id="pmext-build" value="build -"/>
+    </hbox>
+
+    <label id="pmext-status" value="starting..."/>
+
+    <hbox style="margin: 8px 0;">
+      <button id="pmext-reload" label="Reload core"/>
+    </hbox>
+
+    <label value="Log"/>
+    <textbox id="pmext-log" multiline="true" readonly="true" flex="1"
+             style="font-family: monospace; font-size: 11px;"/>
+
+  </vbox>
+</window>
