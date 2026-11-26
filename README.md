@@ -419,10 +419,23 @@ pm-ext/
 │  ├─ ARCHITECTURE.md     ← technical design and mechanisms
 │  └─ RESEARCH.md         ← research and evidence
 ├─ extension/             ← bootstrap toolbox add-on (M1 slice 1)
+├─ tests/
+│  └─ unit/               ← Node unit tests (no Pale Moon needed)
 ├─ cli/                   ← (placeholder) Node CLI
 └─ examples/              ← sample projects
    └─ m0/                 ← M0 proof-of-concept harness (validated)
 ```
+
+## Tests
+
+```
+node --test
+```
+
+The unit tests load `extension/core/watcher.js` into a Node `vm` with fake
+`nsIFile`/`nsITimer`, so they cover the poll, diff and debounce logic without
+launching the browser. Platform behaviour (reload cycle, chrome registration,
+panel) is verified manually per [`extension/README.md`](extension/README.md).
 
 ---
 
