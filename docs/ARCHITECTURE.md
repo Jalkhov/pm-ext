@@ -3,7 +3,7 @@
 This document describes the proposed technical design for `pm-ext`: a live-reload development
 system for **Pale Moon** (platform **UXP**) add-ons.
 
-> Status: **design draft**. None of this is implemented yet.
+> Status: **M0 validated, M1 in progress**. The loader and the panel exist; the watcher does not.
 
 ---
 

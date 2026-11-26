@@ -2,7 +2,7 @@
 
 > A **live-reload development tool** for **Pale Moon** (UXP platform) add-ons: extensions, themes, and personas.
 
-**Status:** 🚧 M0 validated — core reload assumption proven on Pale Moon 35.0.2; toolbox not started.
+**Status:** 🚧 M1 in progress — M0 validated; the toolbox boots, reloads its core and opens a panel.
 **Goal:** a functional equivalent to [`web-ext`](https://github.com/mozilla/web-ext) for the XUL/XPCOM ecosystem of Pale Moon.
 **License:** MPL-2.0.
 
@@ -355,9 +355,9 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 *Goal: a minimal, usable toolbox that reloads one bootstrapped project.*
 
-- [ ] `bootstrap.js` stable core + `core/*` loader with **cache-busting**.
+- [x] `bootstrap.js` stable core + `core/*` loader with **cache-busting**.
 - [ ] Project config (`pm-ext.json`) parsing.
-- [ ] Declare the minimum Pale Moon version, check it at startup and degrade with a clear message on older builds (see [`docs/ARCHITECTURE.md §11`](docs/ARCHITECTURE.md#11-version-compatibility)).
+- [x] Declare the minimum Pale Moon version, check it at startup and degrade with a clear message on older builds (see [`docs/ARCHITECTURE.md §11`](docs/ARCHITECTURE.md#11-version-compatibility)).
 - [ ] Polling watcher (`nsITimer` + `nsIFile.lastModifiedTime`), **ignore globs**, **debounce**.
 - [ ] Reloader for bootstrapped extensions (`userDisabled` toggle).
 - [ ] Minimal **XUL panel**: project list, status, Reload button, log output.
@@ -415,7 +415,7 @@ pm-ext/
 ├─ docs/
 │  ├─ ARCHITECTURE.md     ← technical design and mechanisms
 │  └─ RESEARCH.md         ← research and evidence
-├─ extension/             ← (placeholder) bootstrap toolbox add-on
+├─ extension/             ← bootstrap toolbox add-on (M1 slice 1)
 ├─ cli/                   ← (placeholder) Node CLI
 └─ examples/              ← sample projects
    └─ m0/                 ← M0 proof-of-concept harness (validated)
